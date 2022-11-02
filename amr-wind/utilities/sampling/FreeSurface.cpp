@@ -7,16 +7,11 @@
 
 #include "AMReX_ParmParse.H"
 
-namespace amr_wind {
-namespace free_surface {
+namespace amr_wind::free_surface {
 
 FreeSurface::FreeSurface(CFDSim& sim, std::string label)
     : m_sim(sim), m_label(std::move(label)), m_vof(sim.repo().get_field("vof"))
-{
-#ifdef AMREX_USE_GPU
-    amrex::Print() << "WARNING: FreeSurface: Running on GPUs..." << std::endl;
-#endif
-}
+{}
 
 FreeSurface::~FreeSurface() = default;
 
@@ -409,12 +404,6 @@ void FreeSurface::post_advance_work()
                                 amrex::Real loc1 = loc_arr(i, j, k, 2 * n + 1);
 
                                 // Indices and slope variables
-                                int ip = i;
-                                int jp = j;
-                                int kp = k;
-                                int im = i;
-                                int jm = j;
-                                int km = k;
                                 amrex::Real mx = 0.0;
                                 amrex::Real my = 0.0;
                                 amrex::Real mz = 0.0;
@@ -424,18 +413,12 @@ void FreeSurface::post_advance_work()
                                 // direction
                                 switch (dir) {
                                 case 0:
-                                    ip += 1;
-                                    im -= 1;
                                     mx = 1.0;
                                     break;
                                 case 1:
-                                    jp += 1;
-                                    jm -= 1;
                                     my = 1.0;
                                     break;
                                 case 2:
-                                    kp += 1;
-                                    km -= 1;
                                     mz = 1.0;
                                     break;
                                 }
@@ -519,9 +502,8 @@ void FreeSurface::post_advance_work()
                                                  0.5 * dx[dir] * (1.0 + 1e-8)) {
                                         ht = xm[dir] + 0.5 * dx[dir];
                                     }
-                                    // Save interface location
-                                    dout_ptr[idx] =
-                                        amrex::max(dout_ptr[idx], ht);
+                                    // Save interface location by atomic max
+                                    amrex::Gpu::Atomic::Max(&dout_ptr[idx], ht);
                                 }
                             }
                         }
@@ -720,5 +702,4 @@ void FreeSurface::write_netcdf()
 #endif
 }
 
-} // namespace free_surface
-} // namespace amr_wind
+} // namespace amr_wind::free_surface
