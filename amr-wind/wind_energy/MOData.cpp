@@ -44,7 +44,7 @@ void MOData::update_fluxes(int max_iters)
     amrex::Real psi_h = 0.0;
     utau = kappa * vmag_mean / (std::log(zref / z0));
 
-    std::cout << "update_fluxes():" << std::endl;
+    // std::cout << "update_fluxes():" << std::endl;
     int iter = 0;
     do {
         utau_iter = utau;
