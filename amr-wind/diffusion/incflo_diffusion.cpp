@@ -27,6 +27,7 @@ Vector<Array<LinOpBCType, AMREX_SPACEDIM>> get_diffuse_tensor_bc(
                 r[2][dir] = LinOpBCType::Neumann;
                 break;
             }
+            case BC::wave_generation:
             case BC::mass_inflow:
             case BC::no_slip_wall: {
                 // All three components are Dirichlet
@@ -184,7 +185,8 @@ void fixup_eta_on_domain_faces(
                 amrex::ParallelFor(
                     amrex::bdryLo(bx, idim),
                     [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
-                        fca(i, j, k) = cca(i, j, k);
+                      //fca(i, j, k) = cca(i, j, k);
+                        fca(i, j, k) = 0.0;
                     });
             }
             if (bx.bigEnd(idim) == domain.bigEnd(idim)) {
