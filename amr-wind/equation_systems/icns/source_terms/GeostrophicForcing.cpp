@@ -18,6 +18,7 @@ namespace amr_wind::pde::icns {
  *
  *  - `geostrophic_wind` Geostrophic wind above capping inversion in the
  *    GeostrophicForcing namespace
+ *  - 'three_ComponentForcing' (Default: false = 0 - two component forcing)
  *
  */
 GeostrophicForcing::GeostrophicForcing(const CFDSim& /*unused*/)
@@ -28,26 +29,35 @@ GeostrophicForcing::GeostrophicForcing(const CFDSim& /*unused*/)
         amrex::ParmParse pp("CoriolisForcing");
         amrex::Real rot_time_period = 86400.0;
         pp.query("rotational_time_period", rot_time_period);
+        // Latitude is mandatory, everything else is optional
+        // Latitude is read in degrees
+        pp.get("latitude", latitude);
         coriolis_factor = 2.0 * utils::two_pi() / rot_time_period;
         amrex::Print() << "Geostrophic forcing: Coriolis factor = "
                        << coriolis_factor << std::endl;
-
-        amrex::Real latitude = 90.0;
-        pp.query("latitude", latitude);
-        AMREX_ALWAYS_ASSERT(
-            amrex::Math::abs(latitude - 90.0) <
-            static_cast<amrex::Real>(vs::DTraits<float>::eps()));
     }
 
     {
         // Read the geostrophic wind speed vector (in m/s)
         amrex::ParmParse pp("GeostrophicForcing");
         pp.getarr("geostrophic_wind", m_target_vel);
+        latitude = utils::radians(latitude);
+        sinphi = std::sin(latitude);
+        cosphi = std::cos(latitude);
     }
 
+    {
+        amrex::ParmParse pp("ABL");
+        pp.query("three_ComponentForcing", m_three_dimensional_forcing);
+    }
+
+    amrex::Real S = (m_three_dimensional_forcing == true) ? 1.0 : 0.0;
+
     m_g_forcing = {
-        -coriolis_factor * m_target_vel[1], coriolis_factor * m_target_vel[0],
-        0.0};
+        -coriolis_factor * m_target_vel[1] * sinphi +
+            coriolis_factor * m_target_vel[2] * cosphi * S,
+        +coriolis_factor * m_target_vel[0] * sinphi,
+        -coriolis_factor * m_target_vel[0] * cosphi * S};
 }
 
 GeostrophicForcing::~GeostrophicForcing() = default;
@@ -64,7 +74,7 @@ void GeostrophicForcing::operator()(
     amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
         src_term(i, j, k, 0) += forcing[0];
         src_term(i, j, k, 1) += forcing[1];
-        // No forcing in z-direction
+        src_term(i, j, k, 2) += forcing[2];
     });
 }
 
