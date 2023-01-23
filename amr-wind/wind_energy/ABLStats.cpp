@@ -15,9 +15,7 @@ namespace amr_wind {
 namespace {
 struct TemperatureGradient
 {
-    // cppcheck-suppress unusedStructMember
     double grad_z;
-    // cppcheck-suppress unusedStructMember
     double max_grad_loc;
 };
 } // namespace
@@ -30,10 +28,7 @@ ABLStats::ABLStats(
     , m_mueff(sim.pde_manager().icns().fields().mueff)
     , m_pa_vel(sim, dir)
     , m_pa_temp(m_temperature, sim.time(), dir)
-    , m_pa_vel_fine(sim, dir)
-    , m_pa_temp_fine(m_temperature, sim.time(), dir)
     , m_pa_mueff(m_mueff, sim.time(), dir)
-    , m_pa_tt(m_pa_temp, m_pa_temp)
     , m_pa_tu(m_pa_vel, m_pa_temp)
     , m_pa_uu(m_pa_vel, m_pa_vel)
     , m_pa_uuu(m_pa_vel, m_pa_vel, m_pa_vel)
@@ -96,8 +91,6 @@ void ABLStats::calc_averages()
 {
     m_pa_vel();
     m_pa_temp();
-    m_pa_vel_fine();
-    m_pa_temp_fine();
 }
 
 //! Calculate sfs stress averages
@@ -175,7 +168,6 @@ void ABLStats::post_advance_work()
         break;
     }
 
-    m_pa_tt();
     m_pa_tu();
     m_pa_uu();
     m_pa_uuu();
@@ -193,16 +185,27 @@ void ABLStats::compute_zi(const h1_dir& h1Sel, const h2_dir& h2Sel)
 
     // Only compute zi using coarsest level
 
-    amrex::Gpu::DeviceVector<TemperatureGradient> tgrad(
-        m_ncells_h1 * m_ncells_h2);
-    auto* tgrad_ptr = tgrad.data();
+    amrex::Vector<TemperatureGradient> temp_grad(m_ncells_h1 * m_ncells_h2);
+    auto* tgrad_ptr = temp_grad.data();
     {
         const int normal_dir = m_normal_dir;
         const size_t ncells_h1 = m_ncells_h1;
+        const size_t ncells_h2 = m_ncells_h2;
         amrex::Real dnval = m_dn;
         for (amrex::MFIter mfi(m_temperature(0)); mfi.isValid(); ++mfi) {
             const auto& bx = mfi.tilebox();
             const auto& gradT_arr = (*gradT)(0).array(mfi);
+
+            //Initialize tgrad.gradz to 0.0
+            amrex::ParallelFor(
+                bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+                        int h1 = h1Sel(i, j, k);
+                        int h2 = h2Sel(i, j, k);
+                        tgrad_ptr[h2 * ncells_h2 + h1].grad_z = 0.0;
+                        tgrad_ptr[h2 * ncells_h2 + h1].max_grad_loc = 0.0;
+                });
+
+            //Now loop over cells and determine max gradT            
             amrex::ParallelFor(
                 bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
                     int h1 = h1Sel(i, j, k);
@@ -217,12 +220,8 @@ void ABLStats::compute_zi(const h1_dir& h1Sel, const h2_dir& h2Sel)
                 });
         }
     }
-
-    amrex::Vector<TemperatureGradient> temp_grad(m_ncells_h1 * m_ncells_h2);
-    amrex::Vector<TemperatureGradient> gtemp_grad(m_ncells_h1 * m_ncells_h2);
-    amrex::Gpu::copy(
-        amrex::Gpu::deviceToHost, tgrad.begin(), tgrad.end(),
-        temp_grad.begin());
+    
+    amrex::Vector<TemperatureGradient> gtemp_grad(m_ncells_h1 * m_ncells_h2);    
 #ifdef AMREX_USE_MPI
     MPI_Reduce(
         &temp_grad[0], &gtemp_grad[0], m_ncells_h1 * m_ncells_h2,
@@ -233,9 +232,8 @@ void ABLStats::compute_zi(const h1_dir& h1Sel, const h2_dir& h2Sel)
 
     m_zi = 0.0;
     if (amrex::ParallelDescriptor::IOProcessor()) {
-        for (size_t i = 0; i < m_ncells_h1 * m_ncells_h2; i++) {
+        for (size_t i = 0; i < m_ncells_h1 * m_ncells_h2; i++)
             m_zi += gtemp_grad[i].max_grad_loc;
-        }
         m_zi /=
             (static_cast<double>(m_ncells_h1) *
              static_cast<double>(m_ncells_h2));
@@ -266,18 +264,9 @@ void ABLStats::write_ascii()
     m_pa_temp.output_line_average_ascii(
         stat_dir + "/plane_average_temperature.txt", time.time_index(),
         time.current_time());
-    m_pa_vel_fine.output_line_average_ascii(
-        stat_dir + "/plane_average_velocity_fine.txt", time.time_index(),
-        time.current_time());
-    m_pa_temp_fine.output_line_average_ascii(
-        stat_dir + "/plane_average_temperature_fine.txt", time.time_index(),
-        time.current_time());
     m_pa_mueff.output_line_average_ascii(
         stat_dir + "/plane_average_velocity_mueff.txt", time.time_index(),
         time.current_time());
-    m_pa_tt.output_line_average_ascii(
-        stat_dir + "/second_moment_temperature_temperature.txt",
-        time.time_index(), time.current_time());
     m_pa_tu.output_line_average_ascii(
         stat_dir + "/second_moment_temperature_velocity.txt", time.time_index(),
         time.current_time());
@@ -397,7 +386,6 @@ void ABLStats::prepare_netcdf_file()
     grp.def_var("hvelmag", NC_DOUBLE, two_dim);
     grp.def_var("theta", NC_DOUBLE, two_dim);
     grp.def_var("mueff", NC_DOUBLE, two_dim);
-    grp.def_var("theta'theta'_r", NC_DOUBLE, two_dim);
     grp.def_var("u'theta'_r", NC_DOUBLE, two_dim);
     grp.def_var("v'theta'_r", NC_DOUBLE, two_dim);
     grp.def_var("w'theta'_r", NC_DOUBLE, two_dim);
@@ -503,12 +491,6 @@ void ABLStats::write_netcdf()
         {
             auto var = grp.var("mueff");
             var.put(m_pa_mueff.line_average().data(), start, count);
-        }
-
-        {
-            auto var = grp.var("theta'theta'_r");
-            m_pa_tt.line_moment(0, l_vec);
-            var.put(l_vec.data(), start, count);
         }
 
         {
