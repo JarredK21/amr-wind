@@ -121,8 +121,7 @@ void ABLWallFunction::update_umean(
         m_mo.surf_temp =
             m_surf_temp_init +
             m_surf_temp_rate *
-                amrex::max<amrex::Real>(
-                    time.current_time() - m_surf_temp_rate_tstart, 0.0) /
+                amrex::max(time.current_time() - m_surf_temp_rate_tstart, 0.0) /
                 3600.0;
     }
 
@@ -130,14 +129,9 @@ void ABLWallFunction::update_umean(
         m_mo.vel_mean[0] = m_wf_vel[0];
         m_mo.vel_mean[1] = m_wf_vel[1];
         m_mo.vmag_mean = m_wf_vmag;
-<<<<<<< HEAD
-        m_mo.Su_mean = 0.0; // TODO: need to fill this correctly
-        m_mo.Sv_mean = 0.0; // TODO: need to fill this correctly
-=======
         m_mo.Su_mean = 0.0; // FIXME: need to fill this correctly
         m_mo.Sv_mean = 0.0; // FIXME: need to fill this correctly
         m_mo.Stheta_mean = 0.0; // FIXME: need to fill this correctly
->>>>>>> daefac796bf657f28f7901e4420130da13e161af
         m_mo.theta_mean = m_wf_theta;
     } else {
         m_mo.vel_mean[0] = vpa.line_average_interpolated(m_mo.zref, 0);
@@ -186,8 +180,8 @@ void ABLVelWallFunc::wall_model(
 
     amrex::Orientation zlo(amrex::Direction::z, amrex::Orientation::low);
     amrex::Orientation zhi(amrex::Direction::z, amrex::Orientation::high);
-    if ((velocity.bc_type()[zlo] != BC::wall_model) &&
-        (velocity.bc_type()[zhi] != BC::wall_model)) {
+    if (!(velocity.bc_type()[zlo] == BC::wall_model ||
+          velocity.bc_type()[zhi] == BC::wall_model)) {
         return;
     }
 
@@ -311,8 +305,8 @@ void ABLTempWallFunc::wall_model(
     amrex::Orientation zlo(amrex::Direction::z, amrex::Orientation::low);
     amrex::Orientation zhi(amrex::Direction::z, amrex::Orientation::high);
 
-    if ((temperature.bc_type()[zlo] != BC::wall_model) &&
-        (temperature.bc_type()[zhi] != BC::wall_model)) {
+    if (!(temperature.bc_type()[zlo] == BC::wall_model ||
+          temperature.bc_type()[zhi] == BC::wall_model)) {
         return;
     }
 
