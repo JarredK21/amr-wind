@@ -488,14 +488,6 @@ void VelPlaneAveragingFine::compute_hvelmag_averages(const IndexSelector& idxOp)
 
                                     amrex::Real deltax;
 
-<<<<<<< HEAD
-                                    if (line_xlo <= cell_xlo) {
-                                        deltax = line_xhi - cell_xlo;
-                                    } else if (line_xhi >= cell_xhi) {
-                                        deltax = cell_xhi - line_xlo;
-                                    } else {
-                                        deltax = line_dx;
-=======
                                         if (line_xlo <= cell_xlo) {
                                             deltax = line_xhi - cell_xlo;
                                         } else if (line_xhi >= cell_xhi) {
@@ -535,7 +527,6 @@ void VelPlaneAveragingFine::compute_hvelmag_averages(const IndexSelector& idxOp)
                                         amrex::Gpu::deviceReduceSum(
                                             &line_avg_Stheta[ind], Stheta * vol * denom,
                                             handler);
->>>>>>> daefac796bf657f28f7901e4420130da13e161af
                                     }
 
                                     deltax = amrex::min(deltax, dx);
@@ -580,13 +571,9 @@ void VelPlaneAveragingFine::compute_hvelmag_averages(const IndexSelector& idxOp)
     amrex::ParallelDescriptor::ReduceRealSum(
         m_line_Su_average.data(), static_cast<int>(m_line_Su_average.size()));
     amrex::ParallelDescriptor::ReduceRealSum(
-<<<<<<< HEAD
-        m_line_Sv_average.data(), static_cast<int>(m_line_Sv_average.size()));
-=======
         m_line_Sv_average.data(), m_line_Sv_average.size());
     amrex::ParallelDescriptor::ReduceRealSum(
         m_line_Stheta_average.data(), m_line_Stheta_average.size());
->>>>>>> daefac796bf657f28f7901e4420130da13e161af
 }
 
 amrex::Real
