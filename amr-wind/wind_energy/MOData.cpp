@@ -172,20 +172,6 @@ void MOData::update_fluxes(int max_iters)
         utau1 = utau;
         iter++;
 
-        std::cout << "    -iter: " << iter << std::endl;
-        std::cout << "        utau = " << utau << std::endl;
-        std::cout << "        L = " << L << std::endl;
-        std::cout << "        kappa = " << kappa << std::endl;
-        std::cout << "        vmag_mean = " << vmag_mean << std::endl;
-        std::cout << "        zref = " << zref << std::endl;
-        std::cout << "        z0 = " << z0 << std::endl;
-        std::cout << "        theta_mean = " << theta_mean << std::endl;
-        std::cout << "        surf_temp_flux = " << surf_temp_flux << std::endl;
-        std::cout << "        surf_temp = " << surf_temp << std::endl;
-        std::cout << "        phi_m = " << phi_m() << std::endl;
-        std::cout << "        psi_m = " << psi_m(zref) << std::endl;
-        std::cout << "        phi_h = " << phi_h() << std::endl;
-        std::cout << "        psi_h = " << psi_h(zref) << std::endl;
     }
     
 
@@ -230,13 +216,6 @@ void MOData::update_fluxes(int max_iters)
         psi_h = calc_psi_h(zeta);
         utau = kappa * vmag_mean / (std::log(zref / z0) - psi_m);
 
-        std::cout << "    -iter: " << iter << std::endl;
-        std::cout << "        utau = " << utau << std::endl;
-        std::cout << "        kappa = " << kappa << std::endl;
-        std::cout << "        vmag_mean = " << vmag_mean << std::endl;
-        std::cout << "        zref = " << zref << std::endl;
-        std::cout << "        z0 = " << z0 << std::endl;
-        std::cout << "        psi_m = " << psi_m << std::endl;
         ++iter;
     } while ((std::abs(utau_iter - utau) > 1e-5) && iter <= max_iters);
 */
