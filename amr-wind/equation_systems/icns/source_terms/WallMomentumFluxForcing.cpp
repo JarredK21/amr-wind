@@ -104,37 +104,6 @@ void WallMomentumFluxForcing::operator()(
                 tau_yz = tau.calc_vel_y(v,S);
             }
 
-/*
-            std::cout << "tau_xz = " << tau_xz << std::endl;
-            std::cout << "tau_yz = " << tau_yz << std::endl;
-            std::cout << "utau = " << m_mo.utau << std::endl;
-            std::cout << "z0 = " << m_mo.z0 << std::endl;
-            std::cout << "z1 = " << m_mo.zref << std::endl;
-            std::cout << "L = " << m_mo.L << std::endl;
-            std::cout << "VLarge = " << std::numeric_limits<amrex::Real>::max() << std::endl;
-            std::cout << "phi_m = " << m_mo.phi_m() << std::endl;
-            std::cout << "phi_h = " << m_mo.phi_h() << std::endl;
-            std::cout << "psi_m = " << m_mo.calc_psi_m(m_mo.zref/m_mo.L) << std::endl;
-            std::cout << "psi_m = " << m_mo.calc_psi_m(m_mo.zref/m_mo.L) << std::endl;
-            std::cout << "vel_mean = " << m_mo.vel_mean[0] << " "
-                                       << m_mo.vel_mean[1] << " "
-                                       << m_mo.vel_mean[2] << std::endl;
-            std::cout << "vel_current = " << velocityField(i, j, k, 0) << " " 
-                                          << velocityField(i, j, k, 1) << " "
-                                          << velocityField(i, j, k, 2) << std::endl;
-            std::cout << "temp_mean = " << m_mo.theta_mean << std::endl;
-            std::cout << "density = " << density(i,j,k) << std::endl;
-            std::cout << "dx = " << dx[0] << " " << dx[1] << " " << dx[2] << std::endl;
-            std::cout << "surf_temp_flux = " << m_mo.surf_temp_flux << std::endl;
-            std::cout << "vMag_mean = " << m_mo.vmag_mean << std::endl;
-            std::cout << "Su_mean = " << m_mo.Su_mean << std::endl;
-            std::cout << "Sv_mean = " << m_mo.Sv_mean << std::endl;
-            std::cout << "level = " << lev << std::endl;
-            std::cout << m_velocity.name() << std::endl;
-            std::cout << field_impl::field_name_with_state(m_velocity.name(),fstate) << std::endl;
-            std::cout << m_velocity.num_states() << std::endl;
-            std::cout << m_velocity.num_time_states() << std::endl;
-*/
 
             // Adding the source term as surface stress vector times surface area divided by cell
             // volume (division by cell volume is to make this a source per unit volume).
