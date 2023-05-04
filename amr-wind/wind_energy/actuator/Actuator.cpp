@@ -88,8 +88,8 @@ void Actuator::pre_advance_work()
     BL_PROFILE("amr-wind::actuator::Actuator::pre_advance_work");
 
     m_container->reset_container();
-    update_positions();
     update_velocities();
+    update_positions();
     compute_forces();
     compute_source_term();
 
