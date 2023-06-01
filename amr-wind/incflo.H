@@ -177,7 +177,7 @@ private:
     //! number of cells on all levels including covered cells
     amrex::Long m_cell_count{-1};
 
-    DiffusionType m_diff_type = DiffusionType::Implicit;
+    DiffusionType m_diff_type = DiffusionType::Crank_Nicolson;
 
     //
     // end of member variables
@@ -213,6 +213,7 @@ private:
     //
     ///////////////////////////////////////////////////////////////////////////
     void PrintMaxValues(const std::string& header);
+    void PrintMaxVelLocations(const std::string& header);
     void PrintMaxVel(int lev) const;
     void PrintMaxGp(int lev) const;
     void CheckForNans(int lev) const;
