@@ -367,7 +367,7 @@ TEST_F(ABLMeshTest, coriolis_three_component_const_vel)
     }
 
     // Initialize parameters
-    utils::populate_abl_params();
+    populate_parameters();
     initialize_mesh();
 
     auto fields = ICNSFields(sim())(sim().time());
