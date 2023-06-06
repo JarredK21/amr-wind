@@ -199,9 +199,9 @@ void Actuator::update_velocities()
     auto& pinfo = m_container->m_data;
 
     // Sample velocities at the new locations
-    const auto& vel = m_sim.repo().get_field("velocity");
-    const auto& density = m_sim.repo().get_field("density");
-    m_container->sample_fields(vel, density);
+    const auto& vel2 = m_sim.repo().get_field("velocity");
+    const auto& density2 = m_sim.repo().get_field("density");
+    m_container->sample_fields(vel2, density2);
 
     for (int i = 0, ic = 0; i < pinfo.num_objects; ++i) {
         const auto ig = pinfo.global_id[i];
