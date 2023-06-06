@@ -157,7 +157,7 @@ void Actuator::setup_container()
     m_container->initialize_container();
 }
 
-/** Update actuator positions and sample velocities at new locations.
+/** Update actuator positions
  *
  *  This method loops over all the turbines local to this MPI rank and updates
  *  the position vectors. These new locations are provided to the sampling
@@ -169,6 +169,7 @@ void Actuator::update_positions()
 {
     BL_PROFILE("amr-wind::actuator::Actuator::update_positions");
     auto& pinfo = m_container->m_data;
+
     for (int i = 0, ic = 0; i < pinfo.num_objects; ++i) {
         const auto ig = pinfo.global_id[i];
         auto vpos =
@@ -179,25 +180,33 @@ void Actuator::update_positions()
     m_container->update_positions();
 
     // Sample velocities at the new locations
-    const auto& vel = m_sim.repo().get_field("velocity");
-    const auto& density = m_sim.repo().get_field("density");
-    m_container->sample_fields(vel, density);
+
+   // const auto& vel = m_sim.repo().get_field("velocity");
+
+   // const auto& density = m_sim.repo().get_field("density");
+
+   // m_container->sample_fields(vel, density);
+
 }
 
 /** Provide updated velocities from container to actuator instances
- *
- *  \sa Acuator::update_positions
- */
+*
+*  \sa Acuator::update_positions
+*/
 void Actuator::update_velocities()
 {
     BL_PROFILE("amr-wind::actuator::Actuator::update_velocities");
     auto& pinfo = m_container->m_data;
+
+    // Sample velocities at the new locations
+    const auto& vel = m_sim.repo().get_field("velocity");
+    const auto& density = m_sim.repo().get_field("density");
+    m_container->sample_fields(vel, density);
+
     for (int i = 0, ic = 0; i < pinfo.num_objects; ++i) {
         const auto ig = pinfo.global_id[i];
-
         const auto vel =
             ::amr_wind::utils::slice(pinfo.velocity, ic, pinfo.num_pts[i]);
-
         const auto density =
             ::amr_wind::utils::slice(pinfo.density, ic, pinfo.num_pts[i]);
 
