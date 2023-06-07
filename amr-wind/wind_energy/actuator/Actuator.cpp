@@ -67,8 +67,8 @@ void Actuator::post_init_actions()
     }
 
     setup_container();
-    update_positions();
     update_velocities();
+    update_positions();
     compute_forces();
     compute_source_term();
     prepare_outputs();
@@ -88,8 +88,8 @@ void Actuator::pre_advance_work()
     BL_PROFILE("amr-wind::actuator::Actuator::pre_advance_work");
 
     m_container->reset_container();
-    update_positions();
     update_velocities();
+    update_positions();
     compute_forces();
     compute_source_term();
     communicate_turbine_io();
@@ -169,12 +169,6 @@ void Actuator::update_positions()
 {
     BL_PROFILE("amr-wind::actuator::Actuator::update_positions");
     auto& pinfo = m_container->m_data;
-
-    // Sample velocities at the new locations
-    const auto& vel = m_sim.repo().get_field("velocity");
-    const auto& density = m_sim.repo().get_field("density");
-    m_container->sample_fields(vel, density);
-
     for (int i = 0, ic = 0; i < pinfo.num_objects; ++i) {
         const auto ig = pinfo.global_id[i];
         auto vpos =
@@ -184,6 +178,10 @@ void Actuator::update_positions()
     }
     m_container->update_positions();
 
+    // Sample velocities at the new locations
+    const auto& vel = m_sim.repo().get_field("velocity");
+    const auto& density = m_sim.repo().get_field("density");
+    m_container->sample_fields(vel, density);
 }
 
 /** Provide updated velocities from container to actuator instances
