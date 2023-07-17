@@ -80,6 +80,12 @@ public:
 
     void sample_fields(const Field& umac, const Field& vmac, const Field& wmac, const Field& density);
 
+    void sample_fields(
+        const Field& umac,
+        const Field& vmac,
+        const Field& wmac,
+        const Field& density);
+
     int num_actuator_points() const
     {
         return static_cast<int>(m_data.position.size());
@@ -90,6 +96,12 @@ public:
     void interpolate_fields(const Field& vel, const Field& density);
 
     void interpolate_fields(const Field& umac, const Field& vmac, const Field& wmac, const Field& density);
+
+    void interpolate_fields(
+        const Field& umac,
+        const Field& vmac,
+        const Field& wmac,
+        const Field& density);
 
     void populate_field_buffers();
 
